@@ -19,9 +19,7 @@
 
 ---
 
-### GitHub README.md
 
-```markdown
 # Spring Boot JWT Blog Platform
 
 A full-stack blog platform featuring secure JWT authentication, content categorization, and a rich text editor integration. Built with a focus on modern Spring Boot best practices.
@@ -47,7 +45,6 @@ Ensure Docker is running and start the PostgreSQL database:
 ```bash
 docker-compose up -d
 
-```
 
 ### 2. Configuration
 
