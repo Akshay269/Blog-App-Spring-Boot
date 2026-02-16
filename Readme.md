@@ -1,5 +1,3 @@
-This project, by **Devtiro**, is a comprehensive **Blog Platform** built using **Spring Boot 3.4**, **Spring Security**, and **PostgreSQL**. It focuses on implementing **JWT (JSON Web Token) Authentication**, complex JPA relationships, and clean code principles using tools like **Lombok** and **MapStruct**.
-
 ### Project Analysis
 
 * **Backend:** Java 21, Spring Boot 3.4.
@@ -156,6 +154,3 @@ The system returns a standard error object for all failures:
 
 ```
 
-### Video Source
-
-Step-by-step build: [Build a Blog Platform with Spring Security](http://www.youtube.com/watch?v=Gd6AQsthXNY).
