@@ -1,152 +1,370 @@
-### Project Analysis
-
-* **Backend:** Java 21, Spring Boot 3.4.
-* **Security:** Stateless JWT Authentication. Users must login to create, edit, or delete content, while reading posts, categories, and tags remains public.
-* **Database:** PostgreSQL (production-style) via Docker Compose, and H2 for integration testing.
-* **Key Design Patterns:**
-* **Layered Architecture:** Controllers → Services → Repositories.
-* **DTO Pattern:** Decoupling API contracts from database entities.
-* **Mappers:** Using MapStruct to automate Entity-DTO conversion.
-* **Global Exception Handling:** Centralized `@ControllerAdvice` to handle validation, authentication, and "Not Found" errors.
-
-
-* **Advanced Features:**
-* Calculating "Estimated Reading Time" on the fly during post creation.
-* N+1 Query optimization using HQL `JOIN FETCH` for post counts in categories/tags.
-* Bi-directional JPA relationships (One-to-Many, Many-to-Many).
-
-
 
 ---
 
+# 📘 Blog Platform API
 
-# Spring Boot JWT Blog Platform
+## Overview
 
-A full-stack blog platform featuring secure JWT authentication, content categorization, and a rich text editor integration. Built with a focus on modern Spring Boot best practices.
+A full-stack **blog platform backend** built with **Spring Boot**, **Spring Security**, **JWT authentication**, and **REST APIs**. This service supports user registration, login, role-based access control, and CRUD operations for blog posts and comments.
 
-## 🚀 Features
-- **JWT Authentication:** Secure login with stateless token-based sessions.
-- **Post Management:** CRUD operations for blog posts (Draft vs. Published states).
-- **Organization:** Categorize posts and add multiple tags.
-- **Automatic Metadata:** Calculated "Reading Time" and audit timestamps.
-- **Validation:** Strict input validation using Jakarta Validation.
-- **Frontend Included:** Compatible with a React-based UI.
+## Key Features
 
-## 🛠️ Tech Stack
-- **Backend:** Java 21, Spring Boot 3.4, Spring Security
-- **Data:** Spring Data JPA, PostgreSQL, H2 (Testing)
-- **Tools:** Lombok, MapStruct, Maven, Docker
-- **Security:** JJWT (Java JWT Library)
+* User registration & authentication (JWT)
+* Role-based authorization (USER, ADMIN)
+* CRUD for Posts
+* CRUD for Comments
+* Secure endpoints with Spring Security
+* Pagination and filtering support
 
-## 🏗️ Getting Started
+---
 
-### 1. Database Setup
-Ensure Docker is running and start the PostgreSQL database:
+## 🚀 Getting Started
+
+### Prerequisites
+
+* Java 17+
+* Maven 3.6+
+* PostgreSQL / MySQL
+* (Optional) Docker & Docker-Compose
+
+### Setup
+
+1. Clone the repo:
+
+   ```bash
+   git clone https://github.com/<your_username>/blog-platform.git
+   cd blog-platform
+   ```
+2. Create `.env` or configure `application.properties`:
+
+   ```
+   spring.datasource.url=jdbc:postgresql://localhost:5432/blogdb
+   spring.datasource.username=postgres
+   spring.datasource.password=yourpassword
+
+   jwt.secret=YourJWTSecret
+   jwt.expirationMs=86400000
+   ```
+3. Run:
+
+   ```bash
+   mvn spring-boot:run
+   ```
+
+---
+
+## 🔐 Authentication
+
+All protected endpoints require a **Bearer JWT token**.
+
+```http
+Authorization: Bearer <JWT_TOKEN>
+```
+
+---
+
+## 📡 API Reference
+
+---
+
+### 🧑‍💻 Auth
+
+#### **Register User**
+
+```http
+POST /api/auth/signup
+Content-Type: application/json
+```
+
+**Request Body**
+
+```json
+{
+  "username": "john",
+  "email": "john@example.com",
+  "password": "password123"
+}
+```
+
+**Response**
+
+```json
+{
+  "message": "User registered successfully"
+}
+```
+
+---
+
+#### **Login**
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+```
+
+**Request Body**
+
+```json
+{
+  "username": "john",
+  "password": "password123"
+}
+```
+
+**Response**
+
+```json
+{
+  "token": "JWT_TOKEN",
+  "type": "Bearer",
+  "user": "john",
+  "roles": ["ROLE_USER"]
+}
+```
+
+---
+
+### 📝 Blog Posts
+
+---
+
+#### **Get All Posts**
+
+```http
+GET /api/posts
+```
+
+**Query Parameters (optional)**
+
+| Param | Description |
+| ----- | ----------- |
+| page  | page number |
+| size  | page size   |
+| sort  | sort order  |
+
+**Response**
+
+```json
+[
+  {
+    "id": 1,
+    "title": "First Post",
+    "content": "...",
+    "author": "john",
+    "createdAt": "2026-02-01T12:34:56Z"
+  }
+]
+```
+
+---
+
+#### **Get Post by ID**
+
+```http
+GET /api/posts/{postId}
+```
+
+**Response**
+
+```json
+{
+  "id": 1,
+  "title": "First Post",
+  "content": "...",
+  "author": "john"
+}
+```
+
+---
+
+#### **Create a Post**
+
+```http
+POST /api/posts
+Authorization: Bearer <JWT_TOKEN>
+Content-Type: application/json
+```
+
+**Request Body**
+
+```json
+{
+  "title": "New Post",
+  "content": "This is the content"
+}
+```
+
+**Response**
+
+```json
+{
+  "id": 5,
+  "title": "New Post",
+  "content": "This is the content",
+  "author": "john"
+}
+```
+
+---
+
+#### **Update a Post**
+
+```http
+PUT /api/posts/{postId}
+Authorization: Bearer <JWT_TOKEN>
+Content-Type: application/json
+```
+
+**Request Body**
+
+```json
+{
+  "title": "Updated Title",
+  "content": "Updated content"
+}
+```
+
+**Response**
+
+```json
+{
+  "id": 5,
+  "title": "Updated Title"
+}
+```
+
+---
+
+#### **Delete a Post**
+
+```http
+DELETE /api/posts/{postId}
+Authorization: Bearer <JWT_TOKEN>
+```
+
+**Response**
+
+```json
+{
+  "message": "Post deleted successfully"
+}
+```
+
+---
+
+### 💬 Comments
+
+---
+
+#### **Get Comments for Post**
+
+```http
+GET /api/posts/{postId}/comments
+```
+
+**Response**
+
+```json
+[
+  {
+    "id": 10,
+    "postId": 5,
+    "content": "Great post!",
+    "author": "alice"
+  }
+]
+```
+
+---
+
+#### **Add Comment to Post**
+
+```http
+POST /api/posts/{postId}/comments
+Authorization: Bearer <JWT_TOKEN>
+```
+
+**Request Body**
+
+```json
+{
+  "content": "Nice article!"
+}
+```
+
+**Response**
+
+```json
+{
+  "id": 11,
+  "postId": 5,
+  "content": "Nice article!",
+  "author": "john"
+}
+```
+
+---
+
+#### **Delete Comment**
+
+```http
+DELETE /api/posts/{postId}/comments/{commentId}
+Authorization: Bearer <JWT_TOKEN>
+```
+
+**Response**
+
+```json
+{
+  "message": "Comment removed"
+}
+```
+
+---
+
+## 🧠 Error Responses
+
+| Status | Meaning      |
+| ------ | ------------ |
+| 400    | Bad Request  |
+| 401    | Unauthorized |
+| 403    | Forbidden    |
+| 404    | Not Found    |
+| 500    | Server Error |
+
+---
+
+## 🧪 Testing
+
+Use **Postman** or **Swagger UI** (if integrated) to test endpoints.
+
+---
+
+## 📦 Deployment
+
+Build with Maven:
+
 ```bash
-docker-compose up -d
-
-
-### 2. Configuration
-
-Update `src/main/resources/application.properties` with your JWT secret:
-
-```properties
-jwt.secret=your_very_secure_random_string_at_least_32_bytes
-
+mvn clean package
 ```
 
-### 3. Build & Run
+Deploy to any cloud (Heroku, AWS, GCP, Azure).
 
-```bash
-./mvnw spring-boot:run
+---
 
+## 📁 Folder Structure (typical)
+
+```
+src/main/java/com/yourorg/blog
+├─ controller
+├─ service
+├─ repository
+├─ model
+├─ security
+└─ dto
 ```
 
 ---
 
-## 📖 API Reference
-
-### 🔐 Authentication
-
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| `POST` | `/api/v1/auth/login` | Returns JWT and expiry for valid credentials. |
-
-### 📝 Posts
-
-| Method | Endpoint | Auth | Description |
-| --- | --- | --- | --- |
-| `GET` | `/api/v1/posts` | Public | List published posts (filter by `categoryId` or `tagId`). |
-| `GET` | `/api/v1/posts/drafts` | Private | List draft posts for the authenticated user. |
-| `POST` | `/api/v1/posts` | Private | Create a new post. |
-| `GET` | `/api/v1/posts/{id}` | Public | Get post details by ID. |
-| `PUT` | `/api/v1/posts/{id}` | Private | Update an existing post. |
-| `DELETE` | `/api/v1/posts/{id}` | Private | Delete a post. |
-
-### 📁 Categories & Tags
-
-| Method | Endpoint | Auth | Description |
-| --- | --- | --- | --- |
-| `GET` | `/api/v1/categories` | Public | List all categories with post counts. |
-| `POST` | `/api/v1/categories` | Private | Create a new category. |
-| `DELETE` | `/api/v1/categories/{id}` | Private | Delete category (only if empty). |
-| `GET` | `/api/v1/tags` | Public | List all tags with post counts. |
-| `POST` | `/api/v1/tags` | Private | Bulk create tags. |
-
----
-
-## 🧱 Data Model
-
-* **User:** `id`, `email`, `password`, `name`, `createdAt`.
-* **Post:** `id`, `title`, `content`, `status` (DRAFT/PUBLISHED), `readingTime`, `author_id`, `category_id`.
-* **Category:** `id`, `name`.
-* **Tag:** `id`, `name`.
-
-```
-
-
-
-### Full API Reference (Markdown)
-
-#### 1. Authentication
-**POST** `/api/v1/auth/login`
-- **Body:** `{ "email": "user@test.com", "password": "password" }`
-- **Response:** `200 OK`
-```json
-{
-  "token": "eyJhbG...",
-  "expiresIn": 86400
-}
-
-
-#### 2. Create Post
-
-**POST** `/api/v1/posts`
-
-* **Headers:** `Authorization: Bearer <token>`
-* **Body:**
-
-```json
-{
-  "title": "My New Blog",
-  "content": "Full content here...",
-  "categoryId": "uuid",
-  "tagIds": ["uuid1", "uuid2"],
-  "status": "PUBLISHED"
-}
-
-```
-
-#### 3. Error Handling
-
-The system returns a standard error object for all failures:
-
-```json
-{
-  "status": 401,
-  "message": "Incorrect username or password",
-  "errors": []
-}
-
-```
 
