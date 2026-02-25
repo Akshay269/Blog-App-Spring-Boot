@@ -104,7 +104,7 @@ jwt.secret=your_very_secure_random_string_at_least_32_bytes
 
 ```
 
----
+
 
 ### Full API Reference (Markdown)
 
@@ -118,7 +118,6 @@ jwt.secret=your_very_secure_random_string_at_least_32_bytes
   "expiresIn": 86400
 }
 
-```
 
 #### 2. Create Post
 
